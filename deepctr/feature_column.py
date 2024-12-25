@@ -126,16 +126,25 @@ def get_feature_names(feature_columns):
 
 
 def build_input_features(feature_columns, prefix=''):
-    input_features = OrderedDict()
-    for fc in feature_columns:
-        if isinstance(fc, SparseFeat):
+    """
+    根据传入的特征列feature_columns创建相应的输入层input，并将它们组织成一个有序字典OrderedDict
+    Args:
+        feature_columns: 特征列表，包含了模型中所需要的所有特征列对象
+        prefix: 可选的前缀，用于为每个特征的名称加上前缀，默认为空字符串
+
+    Returns:
+
+    """
+    input_features = OrderedDict() # 存储每个特征对应的输入层
+    for fc in feature_columns: # 遍历每个特征列
+        if isinstance(fc, SparseFeat): # 稀疏特征
             input_features[fc.name] = Input(
-                shape=(1,), name=prefix + fc.name, dtype=fc.dtype)
-        elif isinstance(fc, DenseFeat):
+                shape=(1,), name=prefix + fc.name, dtype=fc.dtype) # 形状为(1,)
+        elif isinstance(fc, DenseFeat): # 密集特征
             input_features[fc.name] = Input(
-                shape=(fc.dimension,), name=prefix + fc.name, dtype=fc.dtype)
-        elif isinstance(fc, VarLenSparseFeat):
-            input_features[fc.name] = Input(shape=(fc.maxlen,), name=prefix + fc.name,
+                shape=(fc.dimension,), name=prefix + fc.name, dtype=fc.dtype) # 形状为(fc.dimension,)
+        elif isinstance(fc, VarLenSparseFeat): # 变长稀疏特征
+            input_features[fc.name] = Input(shape=(fc.maxlen,), name=prefix + fc.name, # 形状为(fc.maxlen,)，其中fc.maxlen是该特征的最大序列长度
                                             dtype=fc.dtype)
             if fc.weight_name is not None:
                 input_features[fc.weight_name] = Input(shape=(fc.maxlen, 1), name=prefix + fc.weight_name,
