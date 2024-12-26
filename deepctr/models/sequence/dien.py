@@ -20,13 +20,21 @@ from ...layers.utils import concat_func, reduce_mean, combined_dnn_input
 
 
 def auxiliary_loss(h_states, click_seq, noclick_seq, mask, stag=None):
-    #:param h_states:
-    #:param click_seq:
-    #:param noclick_seq: #[B,T-1,E]
-    #:param mask:#[B,1]
-    #:param stag:
-    #:return:
+    """
+    计算辅助损失，可以帮助更好的捕捉用户兴趣的动态变化以及对正负样本进行区分
+    Args:
+        h_states: 从前面的网路层输出的隐藏状态
+        click_seq: 用户点击行为的序列数据，维度格式为[B, T-1, E]，其中B为批次大小，T-1为历史行为序列的长度，E是每个行为对应的特征维度
+        noclick_seq: 用户未点击行为的序列数据，维度格式是[B, T-1, E]
+        mask: 在处理序列数据时进行掩码操作，维度为[B,1]
+        stag: 可选参数，可以用来区分是在训练前期还是后期
+
+    Returns:
+
+    """
+    # 获取点击序列除去批次维度后的长度信息
     hist_len, _ = click_seq.get_shape().as_list()[1:]
+    # 根据mask和hist_len创建一个新的掩码张量
     mask = tf.sequence_mask(mask, hist_len)
     mask = mask[:, 0, :]
 
