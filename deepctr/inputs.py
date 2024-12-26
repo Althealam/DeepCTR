@@ -74,18 +74,36 @@ def create_embedding_matrix(feature_columns, l2_reg, seed, prefix="", seq_mask_z
 
 def embedding_lookup(sparse_embedding_dict, sparse_input_dict, sparse_feature_columns, return_feat_list=(),
                      mask_feat_list=(), to_list=False):
-    group_embedding_dict = defaultdict(list)
+    """
+    根据给定的稀疏特征相关信息，从预先构建好的嵌入字典中查找对应的嵌入向量
+    Args:
+        sparse_embedding_dict: 字典，其键通常是特征对应的嵌入名称，值是对应的嵌入矩阵
+        sparse_input_dict: 字典，键是稀疏特征的名称，值是对应的输入张量
+        sparse_feature_columns: 列表，元素是对稀疏特征的相关描述对象
+        return_feat_list: 默认为空列表，用于指定要返回嵌入向量的特征列表
+        mask_feat_list: 默认为空列表，用于标记哪些特征需要进行掩码相关的特殊处理
+        to_list:布尔值，用于决定函数最终的返回形式
+
+    Returns:
+
+    """
+    group_embedding_dict = defaultdict(list) # 字典，按照特征的分组（group_name）来存储查找到的嵌入向量
+    # 遍历稀疏特征列，查找嵌入向量并分组存储
     for fc in sparse_feature_columns:
-        feature_name = fc.name
-        embedding_name = fc.embedding_name
+        feature_name = fc.name # 特征名称
+        embedding_name = fc.embedding_name # 对应的嵌入名称
+        # 判断是否要处理当前这个稀疏特征
         if (len(return_feat_list) == 0 or feature_name in return_feat_list):
+            # 利用use_hash判断是否使用哈希处理
             if fc.use_hash:
                 lookup_idx = Hash(fc.vocabulary_size, mask_zero=(feature_name in mask_feat_list), vocabulary_path=fc.vocabulary_path)(
                     sparse_input_dict[feature_name])
             else:
                 lookup_idx = sparse_input_dict[feature_name]
 
+            # 将查找到的嵌入向量添加到对应的分组字典中
             group_embedding_dict[fc.group_name].append(sparse_embedding_dict[embedding_name](lookup_idx))
+    # 根据to_list参数决定返回形式
     if to_list:
         return list(chain.from_iterable(group_embedding_dict.values()))
     return group_embedding_dict
